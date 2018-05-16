@@ -477,7 +477,7 @@ extension Router : ServerDelegate {
             }
             do {
                 if  !routeResp.state.invokedEnd {
-                    if  routeResp.statusCode == .unknown  && !routeResp.state.invokedSend {
+                    if  (routeResp.statusCode == .unknown || routeResp.statusCode == .notFound)  && !routeResp.state.invokedSend {
                         strongSelf.sendDefaultResponse(request: routeReq, response: routeResp)
                     }
                     if  !routeResp.state.invokedEnd {
