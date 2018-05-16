@@ -73,11 +73,7 @@ extension StaticFileServer {
                 filePath += decodedURL
             } else {
                 Log.warning("unable to decode url \(url)")
-                do {
-                    try response.status(.badRequest).end()
-                } catch {
-                    Log.error("Unable to send \"Invalid Request\" for url: \(url) from request path: \(requestPath)")
-                }
+                response.status(.badRequest)
                 return nil
             }
 
@@ -107,11 +103,7 @@ extension StaticFileServer {
                     filePath += decodedURL
                 } else {
                     Log.warning("unable to decode url \(url)")
-                    do {
-                        try response.status(.badRequest).end()
-                    } catch {
-                        Log.error("Unable to send \"Invalid Request\" for url: \(url) from request path: \(requestPath)")
-                    }
+                    response.status(.badRequest)
                     return nil
                 }
             }
@@ -130,11 +122,7 @@ extension StaticFileServer {
         func serveFile(_ filePath: String, requestPath: String, response: RouterResponse) {
             if  !isValidFilePath(filePath) {
                 Log.error("Invalid request for resource: \(filePath) from request path: \(requestPath)")
-                do {
-                    try response.status(.badRequest).end()
-                } catch {
-                    Log.error("Unable to send \"Invalid Request\" for: \(filePath) from request path: \(requestPath)")
-                }
+                response.status(.badRequest)
                 return
             }
             let fileManager = FileManager()
@@ -152,10 +140,11 @@ extension StaticFileServer {
             }
 
             if !tryToServeWithExtensions(filePath, response: response) {
-                do {
-                    try response.send("Cannot GET \(requestPath)").status(.notFound).end()
-                } catch {
-                    Log.error("failed to send not found response for resource: \(filePath)")
+                /* We only set not found if the request has not already been satisfied by a different handler
+                    This can happen if you have multiple StaticFileServers defined in the application and any
+                    of them are configured to server the route "/" */
+                if response.statusCode == .unknown {
+                    response.status(.notFound)
                 }
             }
         }
